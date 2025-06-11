@@ -1,0 +1,216 @@
+<?php
+
+namespace App;
+
+use App\Models\AsistenteVentas; // Asegúrate de tener este modelo
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
+use Illuminate\http\Request;
+
+class asistenteVentasLogic
+{
+    /**
+     * Create a new class instance.
+     */
+    public function __construct()
+    {
+        //
+    }
+
+    /**
+     * Registra un nuevo asistente de ventas.
+     *
+     * @param string $cedula
+     * @param string $nombre
+     * @param string $email
+     * @param string $password
+     * @param int $edad
+     * @param string $sexo
+     * @param float $salario
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function registrar(string $cedula, string $nombre, string $email, string $password, int $edad, string $sexo, float $salario)
+    {
+        try {
+            Request::validate([
+                'cedula' => 'required|string|unique:asistente_ventas|max:20',
+                'nombre' => 'required|string|max:255',
+                'email' => 'required|string|email|unique:asistente_ventas|max:255',
+                'password' => 'required|string|min:5',
+                'edad' => 'nullable|int|max:20',
+                'sexo' => 'nullable|string|max:255',
+                'salario' => 'required|numeric'
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        }
+
+        $asistente = AsistenteVentas::create([
+            'cedula' => $cedula,
+            'nombre' => $nombre,
+            'email' => $email,
+            'password' => Hash::make($password),
+            'edad' => $edad,
+            'sexo' => $sexo,
+            'salario' => $salario,
+            "created_at" => now(),
+            "updated_at" => null,
+        ]);
+
+        $token = $asistente->createToken('asistente-auth-token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Registro de asistente de ventas exitoso',
+            'user' => $asistente,
+            'token' => $token,
+        ], 201);
+    }
+
+    /**
+     * Inicia sesión un asistente de ventas con email y contraseña.
+     *
+     * @param string $email
+     * @param string $password
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function login(string $email, string $password)
+    {
+
+        try {
+            Request::validate([
+                'email' => 'required|string|email',
+                'password' => 'required|string'
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        }
+
+        $asistente = AsistenteVentas::where('email', $email)->first();
+
+        if (!$asistente || !Hash::check($password, $asistente->password)) {
+            return response()->json([
+                'message' => 'Credenciales inválidas.'
+            ], 401);
+        }
+
+        $asistente->tokens()->where('name', 'asistente-auth-token')->delete();
+
+        $token = $asistente->createToken('asistente-auth-token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Inicio de sesión de asistente de ventas exitoso',
+            'user' => $asistente,
+            'token' => $token,
+        ], 200);
+    }
+
+    /**
+     * Cierra la sesión del asistente de ventas autenticado.
+     *
+     * @param AsistenteVentas $asistente
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function logout(AsistenteVentas $asistente)
+    {
+        $asistente->currentAccessToken()->delete();
+        return response()->json(['message' => 'Sesión cerrada correctamente'], 200); // 200 OK
+    }
+
+    /**
+     * Obtiene los datos del asistente de ventas autenticado.
+     *
+     * @param AsistenteVentas $asistente
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getAutenticado(AsistenteVentas $asistente)
+    {
+        return response()->json([
+            'message' => 'Datos del asistente de ventas',
+            'data' => $asistente
+        ], 200); // 200 OK
+    }
+
+    /**
+     * Obtiene todos los asistentes de ventas.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+
+    public function getAll()
+    {
+        $asistentes = AsistenteVentas::all();
+        return response()->json([
+            'message' => 'Lista de asistentes de ventas',
+            'data' => $asistentes
+        ], 200); // 200 OK
+    }
+
+    /**
+     * Elimina un asistente de ventas por su cédula.
+     *
+     * @param string $cedula
+     * @return \Illuminate\Http\JsonResponse
+     */
+    
+    public function delete(string $cedula)
+    {
+        $asistente = AsistenteVentas::where('cedula', $cedula)->first();
+
+        if (!$asistente) {
+            return response()->json(['message' => 'Asistente de ventas no encontrado'], 404);
+        }
+
+        $asistente->delete();
+        return response()->json(['message' => 'Asistente de ventas eliminado correctamente'], 200); // 200 OK
+    }
+
+    /**
+     * Actualiza los datos de un asistente de ventas.
+     *
+     * @param string $cedula
+     * @param array $data
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function update(string $cedula, array $data)
+    {
+        $asistente = AsistenteVentas::where('cedula', $cedula)->first();
+
+        if (!$asistente) {
+            return response()->json(['message' => 'Asistente de ventas no encontrado'], 404);
+        }
+
+        // Actualiza los campos que se proporcionan
+        $asistente->update(array_filter($data)); // array_filter elimina los campos vacíos
+
+        return response()->json([
+            'message' => 'Asistente de ventas actualizado correctamente',
+            'data' => $asistente
+        ], 200); // 200 OK
+    }
+
+    /**
+     * Obtiene un asistente de ventas por su cédula.
+     *
+     * @param string $cedula
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getByCedula(string $cedula)
+    {
+        $asistente = AsistenteVentas::where('cedula', $cedula)->first();
+
+        if (!$asistente) {
+            return response()->json(['message' => 'Asistente de ventas no encontrado'], 404);
+        }
+
+        return response()->json([
+            'message' => 'Datos del asistente de ventas',
+            'data' => $asistente
+        ], 200); // 200 OK
+    }
+}

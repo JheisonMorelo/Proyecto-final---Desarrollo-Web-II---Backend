@@ -25,16 +25,28 @@ class Cita extends Model
         'fechaCita' => 'datetime',
     ];
 
+    /**
+     * Relación con el modelo Cliente.
+     * Un Cita pertenece a un Cliente.
+     */
     public function cliente(): BelongsTo
     {
         return $this->belongsTo(Cliente::class, 'idCliente', 'cedula');
     }
 
+    /**
+     * Relación con el modelo Recepcionista.
+     * Un Cita pertenece a un Recepcionista.
+     */
     public function recepcionista(): BelongsTo
     {
         return $this->belongsTo(Recepcionista::class, 'idRecepcionista', 'cedula');
     }
 
+    /**
+     * Relación con el modelo Servicio.
+     * Un Cita puede tener muchos Servicios a través de la tabla pivote 'contieneCita'.
+     */
     public function servicios(): BelongsToMany
     {
         return $this->belongsToMany(Servicio::class, 'contieneCita', 'codigoCita', 'codigoServicio');

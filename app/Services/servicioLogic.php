@@ -1,0 +1,86 @@
+<?php
+
+namespace App;
+
+use App\Models\Servicio;
+
+class ServicioLogic
+{
+    /**
+     * Obtener todos los servicios.
+     */
+    public static function getAll()
+    {
+        $servicios = Servicio::all();
+        return response()->json([
+            'message' => 'Lista de servicios',
+            'data' => $servicios
+        ], 200);
+    }
+
+    /**
+     * Obtener un servicio por su código.
+     */
+    public static function getByCodigo($codigo)
+    {
+        $servicio = Servicio::find($codigo);
+        if (!$servicio) {
+            return response()->json(['message' => 'Servicio no encontrado'], 404);
+        }
+        return response()->json([
+            'message' => 'Servicio encontrado',
+            'data' => $servicio
+        ], 200);
+    }
+
+    /**
+     * Crear un nuevo servicio.
+     */
+    public static function create($codigo, $nombre, $descripcion, $precio)
+    {
+        $servicio = Servicio::create([
+            'codigo' => $codigo,
+            'nombre' => $nombre,
+            'descripcion' => $descripcion,
+            'precio' => $precio
+        ]);
+
+        return response()->json([
+            'message' => 'Servicio creado exitosamente',
+            'data' => $servicio
+        ], 201);
+    }
+
+    /**
+     * Actualizar un servicio existente.
+     */
+    public static function update($codigo, $nombre, $descripcion, $precio)
+    {
+        $servicio = Servicio::find($codigo);
+        if (!$servicio) {
+            return response()->json(['message' => 'Servicio no encontrado'], 404);
+        }
+        $servicio->nombre = $nombre;
+        $servicio->descripcion = $descripcion;
+        $servicio->precio = $precio;
+        $servicio->save();
+
+        return response()->json([
+            'message' => 'Servicio actualizado correctamente',
+            'data' => $servicio
+        ], 200);
+    }
+
+    /**
+     * Eliminar un servicio por su código.
+     */
+    public static function delete($codigo)
+    {
+        $servicio = Servicio::find($codigo);
+        if (!$servicio) {
+            return response()->json(['message' => 'Servicio no encontrado'], 404);
+        }
+        $servicio->delete();
+        return response()->json(['message' => 'Servicio eliminado correctamente'], 200);
+    }
+}
