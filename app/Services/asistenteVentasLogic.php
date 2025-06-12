@@ -157,7 +157,7 @@ class asistenteVentasLogic
      * @param string $cedula
      * @return \Illuminate\Http\JsonResponse
      */
-    
+
     public function delete(string $cedula)
     {
         $asistente = AsistenteVentas::where('cedula', $cedula)->first();
@@ -212,5 +212,29 @@ class asistenteVentasLogic
             'message' => 'Datos del asistente de ventas',
             'data' => $asistente
         ], 200); // 200 OK
+    }
+
+    public function getByEmail(string $email)
+    {
+        $asistente = AsistenteVentas::where('email', $email)->first();
+        if (!$asistente) {
+            return response()->json(['message' => 'Asistente de ventas no encontrado'], 404);
+        }
+        return response()->json([
+            'message' => 'Datos del asistente de ventas',
+            'data' => $asistente
+        ], 200);
+    }
+
+    public function getByNombre(string $nombre)
+    {
+        $asistentes = AsistenteVentas::where('nombre', 'like', "%$nombre%")->get();
+        if ($asistentes->isEmpty()) {
+            return response()->json(['message' => 'No se encontraron asistentes de ventas con ese nombre'], 404);
+        }
+        return response()->json([
+            'message' => 'Lista de asistentes de ventas',
+            'data' => $asistentes
+        ], 200);
     }
 }

@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Crud_basic\Users;
 
+use App\Http\Controllers\Controller;
 use App\EspecialistaLogic;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -15,22 +16,25 @@ class EspecialistaController extends Controller
         $this->especialistaLogic = $especialistaLogic;
     }
 
+
     public function register(Request $request)
     {
-        // Validación de los datos de entrada
         try {
             $request->validate([
-                'cedula' => 'required|string|max:20|unique:especialistas,cedula',
-                'nombre' => 'required|string|max:100',
-                'email' => 'required|email|max:255|unique:especialistas,email',
-                'password' => 'required|string|min:8',
+                'cedula' => 'required|string|unique:especialista|max:20',
+                'nombre' => 'required|string|max:255',
+                'email' => 'required|string|email|unique:especialista|max:255',
+                'password' => 'required|string|min:5',
                 'edad' => 'required|integer|min:18|max:100',
                 'sexo' => 'required|string|in:M,F',
                 'rol' => 'required|string|max:50',
-                'salario' => 'required|numeric|min:0',
+                'salario' => 'required|numeric|min:0'
             ]);
         } catch (ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
         }
 
         return $this->especialistaLogic->registrar(
@@ -47,6 +51,17 @@ class EspecialistaController extends Controller
 
     public function login(Request $request)
     {
+        try {
+            $request->validate([
+                'email' => 'required|string|email',
+                'password' => 'required|string'
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        }
         return $this->especialistaLogic->login($request->email, $request->password);
     }
 
@@ -60,37 +75,47 @@ class EspecialistaController extends Controller
         return $this->especialistaLogic->getAuth($request->user('especialista_api'));
     }
 
-    // Método para obtener todos los especialistas
-    public function getAll(Request $request)
+    public function getAll()
     {
         return $this->especialistaLogic->getAll();
     }
 
-    // Método para obtener un especialista por ID
-    public function getById(Request $request)
+    public function getByCedula(Request $request)
     {
-        return $this->especialistaLogic->getByCedula($request->id);
+        return $this->especialistaLogic->getByCedula($request->cedula);
     }
 
-    // Método para actualizar un especialista
+    public function getByEmail(Request $request)
+    {
+        return $this->especialistaLogic->getByEmail($request->email);
+    }
+
+    public function getByNombre(Request $request)
+    {
+        return $this->especialistaLogic->getByNombre($request->nombre);
+    }
+
     public function update(Request $request)
     {
-        // Validación de los datos de entrada
         try {
             $request->validate([
-                'cedula' => 'required|string|max:20|unique:especialistas,cedula,' . $request->id,
-                'nombre' => 'required|string|max:100',
-                'email' => 'required|email|max:255|unique:especialistas,email,' . $request->id,
+                'cedula' => 'required|string|max:20',
+                'nombre' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255',
                 'edad' => 'required|integer|min:18|max:100',
                 'sexo' => 'required|string|in:M,F',
                 'rol' => 'required|string|max:50',
-                'salario' => 'required|numeric|min:0',
+                'salario' => 'required|numeric|min:0'
             ]);
         } catch (ValidationException $e) {
-            return response()->json(['errors' => $e->errors()], 422);
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
         }
 
         $array = [
+            'cedula' => $request->cedula,
             'nombre' => $request->nombre,
             'email' => $request->email,
             'edad' => $request->edad,
@@ -101,4 +126,10 @@ class EspecialistaController extends Controller
 
         return $this->especialistaLogic->update($request->cedula, $array);
     }
+
+    public function delete(Request $request)
+    {
+        return $this->especialistaLogic->delete($request->cedula);
+    }
+    // ...existing code...
 }

@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 namespace App;
 
 use App\Models\Recepcionista;
@@ -135,7 +136,6 @@ class RecepcionistaLogic
         $recepcionista->delete();
 
         return response()->json(['message' => 'Recepcionista eliminado correctamente'], 200);
-
     }
 
     /**
@@ -145,8 +145,14 @@ class RecepcionistaLogic
      * @param array $data
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(Recepcionista $recepcionista, array $data)
+    public function update(string $cedula, array $data)
     {
+
+        $recepcionista = Recepcionista::where('cedula', $cedula)->first();
+        if (!$recepcionista) {
+            return response()->json(['message' => 'Recepcionista no encontrado'], 404);
+        }
+
         $recepcionista->update($data);
         return response()->json([
             'message' => 'Datos del recepcionista actualizados correctamente',
@@ -187,4 +193,29 @@ class RecepcionistaLogic
             'data' => $recepcionista
         ], 200);
     }
+
+    public function getByEmail(string $email)
+    {
+        $recepcionista = Recepcionista::where('email', $email)->first();
+        if (!$recepcionista) {
+            return response()->json(['message' => 'Recepcionista no encontrado'], 404);
+        }
+        return response()->json([
+            'message' => 'Datos del recepcionista',
+            'data' => $recepcionista
+        ], 200);
+    }
+
+    public function getByNombre(string $nombre)
+    {
+        $recepcionistas = Recepcionista::where('nombre', 'like', "%$nombre%")->get();
+        if ($recepcionistas->isEmpty()) {
+            return response()->json(['message' => 'No se encontraron recepcionistas con ese nombre'], 404);
+        }
+        return response()->json([
+            'message' => 'Lista de recepcionistas',
+            'data' => $recepcionistas
+        ], 200);
+    }
+    // ...existing code...
 }

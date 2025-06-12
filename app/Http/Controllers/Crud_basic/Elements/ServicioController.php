@@ -22,9 +22,9 @@ class ServicioController extends Controller
         return response()->$servicios;
     }
 
-    public function getByCodigo($id)
+    public function getByCodigo(Request $request)
     {
-        return $this->servicioLogic->getByCodigo($id);
+        return $this->servicioLogic->getByCodigo($request->codigo);
     }
 
     public function create(Request $request)
@@ -59,8 +59,8 @@ class ServicioController extends Controller
         return $this->servicioLogic->update($request->codigo, $request->nombre, $request->descripcion, $request->precio);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        return $this->servicioLogic->delete($id);
+        return $this->servicioLogic->delete($request->codigo);
     }
 }

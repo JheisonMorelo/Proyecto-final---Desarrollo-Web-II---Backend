@@ -209,14 +209,14 @@ class ClienteLogic
 
     public function getByNombre(string $nombre)
     {
-        $cliente = Cliente::where('nombre', 'like', '%' . $nombre . '%')->first();
+        $cliente = Cliente::where('nombre', 'like', '%' . $nombre . '%')->get();
 
         if (!$cliente) {
             return response()->json(['message' => 'Ninguna coincidencia encontrada'], 404);
         }
 
         return response()->json([
-            'message' => 'Datos encontrados',
+            'message' => 'Clientes Encontrados',
             'data' => $cliente
         ], 200); // 200 ok
     }

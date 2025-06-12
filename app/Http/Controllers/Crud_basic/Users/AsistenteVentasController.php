@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Crud_basic\Users;
 
 use App\asistenteVentasLogic; // Importa la lógica de asistente de ventas
+use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
-class AsistenteVentasAuthController extends Controller
+class AsistenteVentasController extends Controller
 {
     protected $asistenteVentasLogic;
 
@@ -142,5 +143,15 @@ class AsistenteVentasAuthController extends Controller
     public function delete(Request $request)
     {
         return $this->asistenteVentasLogic->delete($request->cedula);
+    }
+
+    public function getByEmail(Request $request)
+    {
+        return $this->asistenteVentasLogic->getByEmail($request->email);
+    }
+
+    public function getByNombre(Request $request)
+    {
+        return $this->asistenteVentasLogic->getByNombre($request->nombre);
     }
 }

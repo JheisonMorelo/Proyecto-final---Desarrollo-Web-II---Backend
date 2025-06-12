@@ -22,9 +22,9 @@ class ProductoController extends Controller
         return response()->$productos;
     }
 
-    public function getByCodigo($id)
+    public function getByCodigo(Request $request)
     {
-        return $this->productoLogic->getByCodigo($id);
+        return $this->productoLogic->getByCodigo($request->codigo);
     }
 
     public function create(Request $request)
@@ -60,8 +60,8 @@ class ProductoController extends Controller
         return $this->productoLogic->update($request->codigo, $request->nombre, $request->descripcion, $request->precio, $request->stock);
     }
 
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        return $this->productoLogic->delete($id);
+        return $this->productoLogic->delete($request->codigo);
     }
 }

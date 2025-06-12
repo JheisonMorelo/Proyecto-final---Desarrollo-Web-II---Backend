@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Crud_basic\Users;
 
+use App\Http\Controllers\Controller;
 use App\RecepcionistaLogic;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -70,4 +71,68 @@ class RecepcionistaController extends Controller
     {
         return $this->recepcionistaLogic->getAutenticado($request->user('recepcionista_api'));
     }
+
+
+    public function userAuth(Request $request)
+    {
+        return $this->recepcionistaLogic->getAutenticado($request->user('recepcionista_api'));
+    }
+
+    public function getAll()
+    {
+        return $this->recepcionistaLogic->getAll();
+    }
+
+    public function getByCedula(Request $request)
+    {
+        return $this->recepcionistaLogic->getByCedula($request->cedula);
+    }
+
+    public function getByEmail(Request $request)
+    {
+        return $this->recepcionistaLogic->getByEmail($request->email);
+    }
+
+    public function getByNombre(Request $request)
+    {
+        return $this->recepcionistaLogic->getByNombre($request->nombre);
+    }
+
+    public function update(Request $request)
+    {
+        try {
+            $request->validate([
+                'cedula' => 'required|string|max:20',
+                'nombre' => 'required|string|max:255',
+                'email' => 'required|string|email|max:255',
+                'edad' => 'nullable|int|max:20',
+                'sexo' => 'nullable|string|max:255',
+                'salario' => 'nullable|numeric|min:0'
+            ]);
+        } catch (ValidationException $e) {
+            return response()->json([
+                'message' => 'Error de validación',
+                'errors' => $e->errors()
+            ], 422);
+        }
+
+        $array = [
+            'cedula' => $request->cedula,
+            'nombre' => $request->nombre,
+            'email' => $request->email,
+            'edad' => $request->edad,
+            'sexo' => $request->sexo,
+            'salario' => $request->salario
+        ];
+
+        
+        return $this->recepcionistaLogic->update($request->cedula, $array);
+    }
+
+    public function delete(Request $request)
+    {
+        return $this->recepcionistaLogic->delete($request->cedula);
+    }
+
+    // ...existing code...
 }

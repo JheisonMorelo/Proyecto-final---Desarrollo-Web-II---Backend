@@ -1,4 +1,5 @@
 <?php
+
 namespace App;
 
 use App\Models\Especialista;
@@ -183,4 +184,29 @@ class EspecialistaLogic
             'data' => $especialista
         ], 200);
     }
+
+    public function getByEmail(string $email)
+    {
+        $especialista = Especialista::where('email', $email)->first();
+        if (!$especialista) {
+            return response()->json(['message' => 'Especialista no encontrado'], 404);
+        }
+        return response()->json([
+            'message' => 'Datos del especialista',
+            'data' => $especialista
+        ], 200);
+    }
+
+    public function getByNombre(string $nombre)
+    {
+        $especialistas = Especialista::where('nombre', 'like', "%$nombre%")->get();
+        if ($especialistas->isEmpty()) {
+            return response()->json(['message' => 'No se encontraron especialistas con ese nombre'], 404);
+        }
+        return response()->json([
+            'message' => 'Lista de especialistas',
+            'data' => $especialistas
+        ], 200);
+    }
+    // ...existing code...
 }
