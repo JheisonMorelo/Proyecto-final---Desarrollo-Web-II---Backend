@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use App\Services\ClienteLogic;
+use Illuminate\Support\Facades\File; // Importa la fachada File para manejar archivos
 
 class ClienteController extends Controller
 {
@@ -22,28 +23,58 @@ class ClienteController extends Controller
     public function register(Request $request)
     {
         try {
+            // Valida los datos de la solicitud, incluyendo la imagen
             $request->validate([
                 'cedula' => 'required|string|unique:cliente|max:20',
                 'nombre' => 'required|string|max:255',
                 'email' => 'required|string|email|unique:cliente|max:255',
                 'password' => 'required|string|min:5',
                 'edad' => 'nullable|int|max:20',
-                'sexo' => 'nullable|string|max:255'
+                'sexo' => 'nullable|string|max:255',
+                'urlImage' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // La imagen es requerida al registrar
             ]);
+
+            $imagePath = null;
+            // Verifica si se ha subido un archivo con el nombre 'urlImage'
+            if ($request->hasFile('urlImage')) {
+                $image = $request->file('urlImage');
+                $cedula = $request->input('cedula'); // Obtiene la cédula para usarla como nombre del archivo
+
+                // Genera el nombre de la imagen usando la cédula y la extensión original
+                $imageName = $cedula . '.' . $image->getClientOriginalExtension();
+                
+                // Define la ruta donde se guardará la imagen dentro de la carpeta 'public'
+                $destinationPath = public_path('images/clientes');
+
+                // Asegura que el directorio exista. Si no, lo crea.
+                if (!File::isDirectory($destinationPath)) {
+                    File::makeDirectory($destinationPath, 0777, true, true);
+                }
+
+                // Mueve la imagen a la carpeta destino
+                $image->move($destinationPath, $imageName);
+                
+                // Guarda la ruta relativa para almacenar en la base de datos
+                $imagePath = 'images/clientes/' . $imageName;
+            }
+
         } catch (ValidationException $e) {
+            // Retorna errores de validación
             return response()->json([
                 'message' => 'Error de validación',
                 'errors' => $e->errors()
             ], 422); // Código 422 para errores de validación
         }
-        
+
+        // Llama a la lógica de negocio para registrar el cliente con la ruta de la imagen
         return $this->clienteLogic->registrar(
             $request->cedula,
             $request->nombre,
             $request->email,
             $request->password,
             $request->edad,
-            $request->sexo
+            $request->sexo,
+            $imagePath // Pasa la ruta de la imagen al servicio
         );
     }
     
@@ -107,31 +138,84 @@ class ClienteController extends Controller
     public function update(Request $request)
     {
         try {
-            Request::validate([
+            // Valida los datos de la solicitud, incluyendo la imagen (ahora es opcional)
+            $request->validate([
                 'cedula' => 'required|string|max:20',
                 'nombre' => 'required|string|max:255',
                 'email' => 'required|string|email|max:255',
                 'edad' => 'nullable|int|max:20',
-                'sexo' => 'nullable|string|max:255'
+                'sexo' => 'nullable|string|max:255',
+                'urlImage' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // La imagen es opcional al actualizar
             ]);
+
+            $imagePath = null;
+            $cedula = $request->input('cedula');
+
+            // Obtiene el cliente existente para verificar si ya tiene una imagen
+            $existingClient = $this->clienteLogic->getByCedula($cedula);
+            if ($existingClient && property_exists($existingClient, 'urlImage')) {
+                $imagePath = $existingClient->urlImage; // Por defecto, mantiene la imagen existente
+            }
+
+            // Si se ha subido una nueva imagen
+            if ($request->hasFile('urlImage')) {
+                $image = $request->file('urlImage');
+                
+                // Si existe una imagen antigua, la elimina
+                if ($existingClient && $existingClient->urlImage) {
+                    $oldImagePath = public_path($existingClient->urlImage);
+                    if (File::exists($oldImagePath)) {
+                        File::delete($oldImagePath); // Elimina el archivo antiguo
+                    }
+                }
+                
+                // Genera el nombre de la nueva imagen
+                $imageName = $cedula . '.' . $image->getClientOriginalExtension();
+                $destinationPath = public_path('images/clientes');
+
+                // Asegura que el directorio exista
+                if (!File::isDirectory($destinationPath)) {
+                    File::makeDirectory($destinationPath, 0777, true, true);
+                }
+
+                // Mueve la nueva imagen a la carpeta destino
+                $image->move($destinationPath, $imageName);
+                $imagePath = 'images/clientes/' . $imageName; // Actualiza la ruta de la imagen
+            }
+
         } catch (ValidationException $e) {
+            // Retorna errores de validación
             return response()->json([
                 'message' => 'Error de validación',
                 'errors' => $e->errors()
             ], 422); // Código 422 para errores de validación
         }
+        
+        // Llama a la lógica de negocio para actualizar el cliente con la ruta de la imagen
         return $this->clienteLogic->update( 
             $request->cedula,
             $request->nombre,
             $request->email,
             $request->edad,
-            $request->sexo
+            $request->sexo,
+            $imagePath // Pasa la ruta de la imagen (nueva o existente)
         );
     }
 
     // Eliminar un cliente
     public function delete(Request $request)
     {
+        // Obtiene el cliente antes de eliminarlo para poder acceder a la ruta de la imagen
+        $existingClient = $this->clienteLogic->getByCedula($request->cedula);
+        
+        // Si el cliente existe y tiene una imagen asociada, la elimina del servidor
+        if ($existingClient && property_exists($existingClient, 'urlImage') && $existingClient->urlImage) {
+            $imagePathToDelete = public_path($existingClient->urlImage);
+            if (File::exists($imagePathToDelete)) {
+                File::delete($imagePathToDelete); // Elimina el archivo de imagen
+            }
+        }
+        // Llama a la lógica de negocio para eliminar el cliente de la base de datos
         return $this->clienteLogic->delete($request->cedula);
     }
 }

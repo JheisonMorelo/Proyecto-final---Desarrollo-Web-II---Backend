@@ -28,9 +28,8 @@ class ClienteLogic
      * @param string $sexo
      * @return \Illuminate\Http\JsonResponse
      */
-    public function registrar(string $cedula, string $nombre, string $email, string $password, int $edad, string $sexo)
+    public function registrar(string $cedula, string $nombre, string $email, string $password, int $edad, string $sexo, ?string $urlImage = null)
     {
-
         $cliente = Cliente::create([
             'cedula' => $cedula,
             'nombre' => $nombre,
@@ -38,6 +37,7 @@ class ClienteLogic
             'password' => Hash::make($password),
             'edad' => $edad,
             'sexo' => $sexo,
+            'urlImage' => $urlImage,
             "created_at" => now(),
             "updated_at" => null,
         ]);
@@ -147,7 +147,7 @@ class ClienteLogic
      * @param string $sexo
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(string $cedula, string $nombre, string $email, int $edad, string $sexo)
+    public function update(string $cedula, string $nombre, string $email, int $edad, string $sexo, ?string $urlImage = null)
     {
         $cliente = Cliente::where('cedula', $cedula)->first();
 
@@ -162,9 +162,9 @@ class ClienteLogic
             'email' => $email,
             'edad' => $edad,
             'sexo' => $sexo,
+            'urlImage' => $urlImage,
             "updated_at" => now(),
         ];
-
 
         $cliente->update($data);
         return response()->json([

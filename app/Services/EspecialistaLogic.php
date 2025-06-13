@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Services;
 
 use App\Models\Especialista;
 use Illuminate\Support\Facades\Hash;
@@ -30,7 +30,7 @@ class EspecialistaLogic
      * @param float $salario
      * @return \Illuminate\Http\JsonResponse
      */
-    public function registrar(string $cedula, string $nombre, string $email, string $password, int $edad, string $sexo, string $rol, float $salario)
+    public function registrar(string $cedula, string $nombre, string $email, string $password, int $edad, string $sexo, string $rol, float $salario, ?string $urlImage = null)
     {
         $especialista = Especialista::create([
             'cedula' => $cedula,
@@ -41,6 +41,7 @@ class EspecialistaLogic
             'sexo' => $sexo,
             'rol' => $rol,
             'salario' => $salario,
+            'urlImage' => $urlImage,
             "created_at" => now(),
             "updated_at" => null,
         ]);
@@ -156,7 +157,7 @@ class EspecialistaLogic
         if (!$especialista) {
             return response()->json(['message' => 'Especialista no encontrado'], 404);
         }
-
+        // urlImage puede venir en $data
         $especialista->update($data);
 
         return response()->json([

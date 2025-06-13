@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Services;
 
 use App\Models\Servicio;
 
@@ -36,13 +36,14 @@ class ServicioLogic
     /**
      * Crear un nuevo servicio.
      */
-    public static function create($codigo, $nombre, $descripcion, $precio)
+    public static function create($codigo, $nombre, $descripcion, $precio, $urlImage = null)
     {
         $servicio = Servicio::create([
             'codigo' => $codigo,
             'nombre' => $nombre,
             'descripcion' => $descripcion,
-            'precio' => $precio
+            'precio' => $precio,
+            'urlImage' => $urlImage
         ]);
 
         return response()->json([
@@ -54,7 +55,7 @@ class ServicioLogic
     /**
      * Actualizar un servicio existente.
      */
-    public static function update($codigo, $nombre, $descripcion, $precio)
+    public static function update($codigo, $nombre, $descripcion, $precio, $urlImage = null)
     {
         $servicio = Servicio::find($codigo);
         if (!$servicio) {
@@ -63,6 +64,9 @@ class ServicioLogic
         $servicio->nombre = $nombre;
         $servicio->descripcion = $descripcion;
         $servicio->precio = $precio;
+        if ($urlImage !== null) {
+            $servicio->urlImage = $urlImage;
+        }
         $servicio->save();
 
         return response()->json([

@@ -28,6 +28,7 @@ return new class extends Migration
             $table->string('nombre');
             $table->longText('descripcion');
             $table->double('precio');
+            $table->string('urlImage')->nullable();
         });
 
         Schema::create('contieneCita', function (Blueprint $table) {

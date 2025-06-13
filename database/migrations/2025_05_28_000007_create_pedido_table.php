@@ -31,6 +31,7 @@ return new class extends Migration
             $table->longText('descripcion');
             $table->double('precio');
             $table->integer('stock');
+            $table->string('urlImage')->nullable();
         });
 
         Schema::create('contienePedido', function (Blueprint $table) {

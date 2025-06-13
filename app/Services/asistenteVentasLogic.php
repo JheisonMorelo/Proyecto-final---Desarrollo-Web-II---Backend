@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Services;
 
 use App\Models\AsistenteVentas; // Asegúrate de tener este modelo
 use Illuminate\Support\Facades\Hash;
@@ -29,7 +29,7 @@ class asistenteVentasLogic
      * @param float $salario
      * @return \Illuminate\Http\JsonResponse
      */
-    public function registrar(string $cedula, string $nombre, string $email, string $password, int $edad, string $sexo, float $salario)
+    public function registrar(string $cedula, string $nombre, string $email, string $password, int $edad, string $sexo, float $salario, ?string $urlImage = null)
     {
         try {
             Request::validate([
@@ -39,7 +39,8 @@ class asistenteVentasLogic
                 'password' => 'required|string|min:5',
                 'edad' => 'nullable|int|max:20',
                 'sexo' => 'nullable|string|max:255',
-                'salario' => 'required|numeric'
+                'salario' => 'required|numeric',
+                'urlImage' => 'nullable|string|max:255'
             ]);
         } catch (ValidationException $e) {
             return response()->json([
@@ -56,6 +57,7 @@ class asistenteVentasLogic
             'edad' => $edad,
             'sexo' => $sexo,
             'salario' => $salario,
+            'urlImage' => $urlImage,
             "created_at" => now(),
             "updated_at" => null,
         ]);

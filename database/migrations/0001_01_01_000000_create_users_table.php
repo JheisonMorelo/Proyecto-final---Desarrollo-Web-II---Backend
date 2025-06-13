@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('password');
             $table->integer('edad');
             $table->string('sexo');
+            $table->string('urlImage')->nullable();
             $table->timestamps();
         });
 
@@ -29,6 +30,7 @@ return new class extends Migration
             $table->integer('edad');
             $table->string('sexo');
             $table->double("salario");
+            $table->string('urlImage')->nullable();
             $table->timestamps();
         });
 
@@ -40,6 +42,7 @@ return new class extends Migration
             $table->integer('edad');
             $table->string('sexo');
             $table->double("salario");
+            $table->string('urlImage')->nullable();
             $table->timestamps();
         });
 
@@ -52,6 +55,7 @@ return new class extends Migration
             $table->string('sexo');
             $table->string('rol');
             $table->double('salario');
+            $table->string('urlImage')->nullable();
             $table->timestamps();
         });
 

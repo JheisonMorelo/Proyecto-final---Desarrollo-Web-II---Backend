@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Services;
 
 use App\Models\Recepcionista;
 use Illuminate\Support\Facades\Hash;
@@ -29,9 +29,8 @@ class RecepcionistaLogic
      * @param float $salario
      * @return \Illuminate\Http\JsonResponse
      */
-    public function registrar(string $cedula, string $nombre, string $email, string $password, int $edad, string $sexo, float $salario)
+    public function registrar(string $cedula, string $nombre, string $email, string $password, int $edad, string $sexo, float $salario, ?string $urlImage = null)
     {
-
         $recepcionista = Recepcionista::create([
             'cedula' => $cedula,
             'nombre' => $nombre,
@@ -40,6 +39,7 @@ class RecepcionistaLogic
             'edad' => $edad,
             'sexo' => $sexo,
             'salario' => $salario,
+            'urlImage' => $urlImage,
             "created_at" => now(),
             "updated_at" => null,
         ]);
@@ -147,12 +147,11 @@ class RecepcionistaLogic
      */
     public function update(string $cedula, array $data)
     {
-
         $recepcionista = Recepcionista::where('cedula', $cedula)->first();
         if (!$recepcionista) {
             return response()->json(['message' => 'Recepcionista no encontrado'], 404);
         }
-
+        // urlImage puede venir en $data
         $recepcionista->update($data);
         return response()->json([
             'message' => 'Datos del recepcionista actualizados correctamente',

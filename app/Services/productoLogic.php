@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\Services;
 
 use App\Models\Producto;
 
@@ -36,14 +36,15 @@ class ProductoLogic
     /**
      * Crear un nuevo producto.
      */
-    public static function create($codigo, $nombre, $descripcion, $precio, $stock)
+    public static function create($codigo, $nombre, $descripcion, $precio, $stock, $urlImage = null)
     {
         $producto = Producto::create([
             'codigo' => $codigo,
             'nombre' => $nombre,
             'descripcion' => $descripcion,
             'precio' => $precio,
-            'stock' => $stock
+            'stock' => $stock,
+            'urlImage' => $urlImage
         ]);
 
         return response()->json([
@@ -55,7 +56,7 @@ class ProductoLogic
     /**
      * Actualizar un producto existente.
      */
-    public static function update($codigo, $nombre, $descripcion, $precio, $stock)
+    public static function update($codigo, $nombre, $descripcion, $precio, $stock, $urlImage = null)
     {
         $producto = Producto::find($codigo);
         if (!$producto) {
@@ -66,6 +67,9 @@ class ProductoLogic
         $producto->descripcion = $descripcion;
         $producto->precio = $precio;
         $producto->stock = $stock;
+        if ($urlImage !== null) {
+            $producto->urlImage = $urlImage;
+        }
         $producto->save();
 
         return response()->json([
