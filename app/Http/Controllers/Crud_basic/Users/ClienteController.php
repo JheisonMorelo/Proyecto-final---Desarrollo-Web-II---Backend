@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use App\Services\ClienteLogic;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File; // Importa la fachada File para manejar archivos
 
 class ClienteController extends Controller
@@ -29,9 +30,9 @@ class ClienteController extends Controller
                 'nombre' => 'required|string|max:255',
                 'email' => 'required|string|email|unique:cliente|max:255',
                 'password' => 'required|string|min:5',
-                'edad' => 'nullable|int|max:20',
-                'sexo' => 'nullable|string|max:255',
-                'urlImage' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // La imagen es requerida al registrar
+                'edad' => 'required|int|max:20',
+                'sexo' => 'required|string|max:255',
+                'urlImage' => 'image|mimes:jpeg,png,jpg,gif,svg|max:2048', 
             ]);
 
             $imagePath = null;
@@ -200,6 +201,86 @@ class ClienteController extends Controller
             $request->sexo,
             $imagePath // Pasa la ruta de la imagen (nueva o existente)
         );
+    }
+
+    /**
+     * NUEVO MÉTODO: Obtener el perfil del cliente autenticado.
+     */
+    public function getAuthClientProfile()
+    {
+        $user = Auth::guard('cliente_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Usuario no autenticado'], 401);
+        }
+        return $this->clienteLogic->getByCedula($user->cedula);
+    }
+
+    /**
+     * NUEVO MÉTODO: Actualizar el perfil del cliente autenticado.
+     */
+    public function updateAuthClientProfile(Request $request)
+    {
+        $user = Auth::guard('cliente_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Usuario no autenticado'], 401);
+        }
+
+        try {
+            $request->validate([
+                'nombre' => 'required|string|max:100',
+                'email' => 'required|email|max:255|unique:cliente,email,' . $user->cedula . ',cedula', 
+                'password' => 'nullable|string|min:8|confirmed', // Contraseña opcional al actualizar
+                'edad' => 'required|integer|min:18|max:100',
+                'sexo' => 'required|string|in:M,F',
+                'urlImage' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Imagen opcional al actualizar
+            ]);
+
+            $data = $request->only(['nombre', 'email', 'password', 'edad', 'sexo']);
+
+            // Manejo de la imagen: si se envía una nueva, se guarda y se elimina la antigua.
+            $imagePath = $user->urlImage; // Mantener la imagen existente por defecto
+            if ($request->hasFile('urlImage')) {
+                $image = $request->file('urlImage');
+                $imageName = $user->cedula . '.' . $image->getClientOriginalExtension();
+                $destinationPath = public_path('images/clientes');
+
+                // Eliminar la imagen antigua si existe
+                if ($user->urlImage && File::exists(public_path($user->urlImage))) {
+                    File::delete(public_path($user->urlImage));
+                }
+                
+                if (!File::isDirectory($destinationPath)) {
+                    File::makeDirectory($destinationPath, 0777, true, true);
+                }
+                $image->move($destinationPath, $imageName);
+                $imagePath = 'images/clientes/' . $imageName;
+            } else if ($request->input('removeImage')) { // Si se indica explícitamente eliminar la imagen
+                if ($user->urlImage && File::exists(public_path($user->urlImage))) {
+                    File::delete(public_path($user->urlImage));
+                }
+                $imagePath = null;
+            }
+            $data['urlImage'] = $imagePath;
+
+            return $this->clienteLogic->update($user->cedula, $data);
+
+        } catch (ValidationException $e) {
+            return response()->json(['message' => 'Error de validación', 'errors' => $e->errors()], 422);
+        }
+    }
+
+    /**
+     * NUEVO MÉTODO: Eliminar la cuenta del cliente autenticado.
+     */
+    public function deleteAuthClientAccount(Request $request)
+    {
+        $user = Auth::guard('cliente_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Usuario no autenticado'], 401);
+        }
+
+        // Llama a la lógica de eliminación para el cliente autenticado
+        return $this->clienteLogic->delete($user->cedula);
     }
 
     // Eliminar un cliente

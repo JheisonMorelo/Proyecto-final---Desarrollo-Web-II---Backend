@@ -10,8 +10,13 @@ class PermissionSeeder extends Seeder
 {
     public function run()
     {
-        // Permisos y roles para Cliente
+        // Define los guards de tu aplicación
         $clienteGuard = 'cliente_api';
+        $recepcionistaGuard = 'recepcionista_api';
+        $asistenteGuard = 'asistente_api';
+        $especialistaGuard = 'especialista_api';
+
+        // --- Permisos y roles para Cliente ---
         $clientePermissions = [
             'ver_pedidos_propios',
             'registrar_pedido_propio',
@@ -31,8 +36,7 @@ class PermissionSeeder extends Seeder
         }
         $clienteRole->syncPermissions(Permission::where('guard_name', $clienteGuard)->pluck('name')->toArray());
 
-        // Permisos y roles para Recepcionista
-        $recepcionistaGuard = 'recepcionista_api';
+        // --- Permisos y roles para Recepcionista ---
         $recepcionistaPermissions = [
             'ver_todas_citas',
             'registrar_cita',
@@ -48,7 +52,7 @@ class PermissionSeeder extends Seeder
             'registrar_servicio',
             'buscar_servicio',
             'modificar_servicio',
-            'eliminar_servicio',
+            'eliminar_servicio'
         ];
         $recepcionistaRole = Role::firstOrCreate(['name' => 'recepcionista', 'guard_name' => $recepcionistaGuard]);
         foreach ($recepcionistaPermissions as $perm) {
@@ -74,7 +78,6 @@ class PermissionSeeder extends Seeder
         foreach ($asistentePermissions as $perm) {
             Permission::firstOrCreate(['name' => $perm, 'guard_name' => $asistenteGuard]);
         }
-        
         $asistenteRole->syncPermissions(Permission::where('guard_name', $asistenteGuard)->pluck('name')->toArray());
 
         // Permisos y roles para Especialista
@@ -84,12 +87,12 @@ class PermissionSeeder extends Seeder
             'buscar_informe_propio',
             'modificar_informe_propio',
             'eliminar_informe_propio',
+            // Puedes añadir permisos específicos como 'ver_citas_asignadas', etc.
         ];
         $especialistaRole = Role::firstOrCreate(['name' => 'especialista', 'guard_name' => $especialistaGuard]);
         foreach ($especialistaPermissions as $perm) {
             Permission::firstOrCreate(['name' => $perm, 'guard_name' => $especialistaGuard]);
         }
         $especialistaRole->syncPermissions(Permission::where('guard_name', $especialistaGuard)->pluck('name')->toArray());
-
     }
 }

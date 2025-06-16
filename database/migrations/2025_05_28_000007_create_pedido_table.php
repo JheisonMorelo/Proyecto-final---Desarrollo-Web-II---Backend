@@ -14,14 +14,14 @@ return new class extends Migration
         Schema::create('pedido', function (Blueprint $table) {
             $table->string('codigo')->primary();
             $table->string('idCliente');
-            $table->string('idAsistenteVentas');
+            $table->string('idAsistenteVentas')->nullable();
             $table->string('direccion');
             $table->dateTime('fechaRegistro');
             $table->string('estado');
             $table->double('costoTotal');
 
-            $table->foreign('idCliente')->references('cedula')->on('cliente');
-            $table->foreign('idAsistenteVentas')->references('cedula')->on('asistenteVentas');
+            $table->foreign('idCliente')->references('cedula')->on('cliente')->onDelete('cascade');
+            $table->foreign('idAsistenteVentas')->references('cedula')->on('asistenteVentas')->onDelete('cascade');
         });
 
 
@@ -32,6 +32,7 @@ return new class extends Migration
             $table->double('precio');
             $table->integer('stock');
             $table->string('urlImage')->nullable();
+            $table->timestamps();
         });
 
         Schema::create('contienePedido', function (Blueprint $table) {
@@ -39,8 +40,8 @@ return new class extends Migration
             $table->string('codigoProducto');
             $table->integer('numProductos');
 
-            $table->foreign('codigoPedido')->references('codigo')->on('pedido');
-            $table->foreign('codigoProducto')->references('codigo')->on('producto');
+            $table->foreign('codigoPedido')->references('codigo')->on('pedido')->onDelete('cascade');
+            $table->foreign('codigoProducto')->references('codigo')->on('producto')->onDelete('cascade');
         });
     }
 

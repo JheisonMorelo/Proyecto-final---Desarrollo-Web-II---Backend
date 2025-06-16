@@ -6,6 +6,8 @@ use App\Models\AsistenteVentas; // Asegúrate de tener este modelo
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\http\Request;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class asistenteVentasLogic
 {
@@ -31,24 +33,6 @@ class asistenteVentasLogic
      */
     public function registrar(string $cedula, string $nombre, string $email, string $password, int $edad, string $sexo, float $salario, ?string $urlImage = null)
     {
-        try {
-            Request::validate([
-                'cedula' => 'required|string|unique:asistente_ventas|max:20',
-                'nombre' => 'required|string|max:255',
-                'email' => 'required|string|email|unique:asistente_ventas|max:255',
-                'password' => 'required|string|min:5',
-                'edad' => 'nullable|int|max:20',
-                'sexo' => 'nullable|string|max:255',
-                'salario' => 'required|numeric',
-                'urlImage' => 'nullable|string|max:255'
-            ]);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Error de validación',
-                'errors' => $e->errors()
-            ], 422);
-        }
-
         $asistente = AsistenteVentas::create([
             'cedula' => $cedula,
             'nombre' => $nombre,
@@ -62,12 +46,11 @@ class asistenteVentasLogic
             "updated_at" => null,
         ]);
 
-        $token = $asistente->createToken('asistente-auth-token')->plainTextToken;
+       $asistente->assignRole('asistente_ventas'); // Asigna el rol 'asistenteVentas' al asistente 
 
         return response()->json([
             'message' => 'Registro de asistente de ventas exitoso',
             'user' => $asistente,
-            'token' => $token,
         ], 201);
     }
 
@@ -80,19 +63,6 @@ class asistenteVentasLogic
      */
     public function login(string $email, string $password)
     {
-
-        try {
-            Request::validate([
-                'email' => 'required|string|email',
-                'password' => 'required|string'
-            ]);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Error de validación',
-                'errors' => $e->errors()
-            ], 422);
-        }
-
         $asistente = AsistenteVentas::where('email', $email)->first();
 
         if (!$asistente || !Hash::check($password, $asistente->password)) {
@@ -105,10 +75,15 @@ class asistenteVentasLogic
 
         $token = $asistente->createToken('asistente-auth-token')->plainTextToken;
 
+        $roleName = $asistente->getRoleNames()->first(); // Obtiene el nombre del primer rol
+        $permissions = $asistente->getAllPermissions()->pluck('name'); // Obtiene todos los permisos por nombre
+
         return response()->json([
             'message' => 'Inicio de sesión de asistente de ventas exitoso',
             'user' => $asistente,
             'token' => $token,
+            'role' => $roleName,
+            'permissions' => $permissions
         ], 200);
     }
 
@@ -132,9 +107,13 @@ class asistenteVentasLogic
      */
     public function getAutenticado(AsistenteVentas $asistente)
     {
+        $roleName = $asistente->getRoleNames()->first(); // Obtiene el nombre del primer rol
+        $permissions = $asistente->getAllPermissions()->pluck('name'); // Obtiene todos los permisos por nombre
         return response()->json([
             'message' => 'Datos del asistente de ventas',
-            'data' => $asistente
+            'data' => $asistente,
+            'role' => $roleName,
+            'permissions' => $permissions
         ], 200); // 200 OK
     }
 

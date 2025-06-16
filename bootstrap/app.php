@@ -13,6 +13,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        $middleware->api(prepend: [
+        // Posiblemente aquí para APIs que usen sesión
+        \Laravel\Sanctum\Http\Middleware\AuthenticateSession::class,
+    ]);
         $middleware->alias(['auth.client_recep' => AuthClientRecep::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

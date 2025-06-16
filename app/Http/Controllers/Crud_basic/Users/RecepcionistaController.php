@@ -189,4 +189,85 @@ class RecepcionistaController extends Controller
         }
         return $this->recepcionistaLogic->delete($request->cedula);
     }
+
+        // --- Métodos de Gestión del Propio Perfil del Recepcionista ---
+
+    /**
+     * Obtener el perfil del recepcionista autenticado.
+     */
+    public function getAuthRecepcionistaProfile()
+    {
+        $user = Auth::guard('recepcionista_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Usuario no autenticado'], 401);
+        }
+        return $this->recepcionistaLogic->getByCedula($user->cedula);
+    }
+
+    /**
+     * Actualizar el perfil del recepcionista autenticado.
+     */
+    public function updateAuthRecepcionistaProfile(Request $request)
+    {
+        $user = Auth::guard('recepcionista_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Usuario no autenticado'], 401);
+        }
+
+        try {
+            $request->validate([
+                'nombre' => 'required|string|max:100',
+                'email' => 'required|email|max:255|unique:recepcionista,email,' . $user->cedula . ',cedula', // Ignorar el propio email
+                'password' => 'nullable|string|min:8|confirmed', // Contraseña opcional
+                'edad' => 'nullable|integer|min:18|max:100', // Nullable si no es estrictamente necesario
+                'sexo' => 'nullable|string|in:M,F',          // Nullable
+                'salario' => 'nullable|numeric|min:0',      // Nullable
+                'urlImage' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Imagen opcional
+            ]);
+
+            $data = $request->only(['nombre', 'email', 'password', 'edad', 'sexo', 'salario']);
+
+            // Manejo de la imagen: similar a ClienteController
+            $imagePath = $user->urlImage;
+            if ($request->hasFile('urlImage')) {
+                $image = $request->file('urlImage');
+                $imageName = $user->cedula . '.' . $image->getClientOriginalExtension();
+                $destinationPath = public_path('images/recepcionistas'); // Directorio para imágenes de recepcionistas
+
+                // Eliminar la imagen antigua si existe
+                if ($user->urlImage && File::exists(public_path($user->urlImage))) {
+                    File::delete(public_path($user->urlImage));
+                }
+                
+                if (!File::isDirectory($destinationPath)) {
+                    File::makeDirectory($destinationPath, 0777, true, true);
+                }
+                $image->move($destinationPath, $imageName);
+                $imagePath = 'images/recepcionistas/' . $imageName;
+            } else if ($request->input('removeImage')) { // Si se indica explícitamente eliminar la imagen
+                if ($user->urlImage && File::exists(public_path($user->urlImage))) {
+                    File::delete(public_path($user->urlImage));
+                }
+                $imagePath = null;
+            }
+            $data['urlImage'] = $imagePath;
+
+            return $this->recepcionistaLogic->update($user->cedula, $data);
+
+        } catch (ValidationException $e) {
+            return response()->json(['message' => 'Error de validación', 'errors' => $e->errors()], 422);
+        }
+    }
+
+    /**
+     * Eliminar la cuenta del recepcionista autenticado.
+     */
+    public function deleteAuthRecepcionistaAccount(Request $request)
+    {
+        $user = Auth::guard('recepcionista_api')->user();
+        if (!$user) {
+            return response()->json(['message' => 'Usuario no autenticado'], 401);
+        }
+        return $this->recepcionistaLogic->delete($user->cedula);
+    }
 }

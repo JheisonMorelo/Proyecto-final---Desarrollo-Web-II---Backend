@@ -19,8 +19,7 @@ class ServicioController extends Controller
 
     public function getAll()
     {
-        $servicios = $this->servicioLogic->getAll();
-        return response()->json($servicios); // Corregido: response()->json($servicios)
+        return $this->servicioLogic->getAll();
     }
 
     public function getByCodigo(Request $request)

@@ -20,7 +20,7 @@ class ProductoController extends Controller
     public function getAll()
     {
         $productos = $this->productoLogic->getAll();
-        return response()->json($productos); // Corregido: response()->json($productos)
+        return $productos;
     }
 
     public function getByCodigo(Request $request)

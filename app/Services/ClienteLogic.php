@@ -6,6 +6,8 @@ use App\Models\Cliente; // Asegúrate de importar tu modelo
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class ClienteLogic
 {
@@ -42,6 +44,8 @@ class ClienteLogic
             "updated_at" => null,
         ]);
 
+        $cliente->assignRole('cliente');
+
         return response()->json([
             'message' => 'Registro de cliente exitoso',
             'user' => $cliente
@@ -70,10 +74,15 @@ class ClienteLogic
         //Crea el token para este usuario
         $token = $cliente->createToken($email)->plainTextToken;
 
+        $roleName = $cliente->getRoleNames()->first(); // Obtiene el nombre del primer rol
+        $permissions = $cliente->getAllPermissions()->pluck('name'); // Obtiene todos los permisos por nombre
+
         return response()->json([
             'message' => 'Inicio de sesión de cliente exitoso',
             'user' => $cliente,
             'token' => $token,
+            'role' => $roleName,
+            'permissions' => $permissions
         ], 200); // 200 ok
     }
 
@@ -97,9 +106,14 @@ class ClienteLogic
      */
     public function getAutenticado(Cliente $cliente)
     {
+
+        $roleName = $cliente->getRoleNames()->first(); // Obtiene el nombre del primer rol
+        $permissions = $cliente->getAllPermissions()->pluck('name'); // Obtiene todos los permisos por nombre
         return response()->json([
             'message' => 'Datos del cliente',
-            'data' => $cliente
+            'data' => $cliente,
+            'role'=> $roleName,
+            'permissions' => $permissions
         ], 200); // 200 ok
     }
 
@@ -133,7 +147,7 @@ class ClienteLogic
         $clientes = Cliente::all();
         return response()->json([
             'message' => 'Lista de clientes',
-            'data' => $clientes
+            'data' => $clientes->toArray()
         ], 200); // 200 ok
     }
 
@@ -147,7 +161,7 @@ class ClienteLogic
      * @param string $sexo
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(string $cedula, string $nombre, string $email, int $edad, string $sexo, ?string $urlImage = null)
+    public function update(string $cedula, array $data)
     {
         $cliente = Cliente::where('cedula', $cedula)->first();
 
@@ -155,21 +169,18 @@ class ClienteLogic
             return response()->json(['message' => 'Cliente no encontrado'], 404);
         }
 
-        // Actualizar los datos del cliente
-        $data = [
-            'cedula' => $cedula,
-            'nombre' => $nombre,
-            'email' => $email,
-            'edad' => $edad,
-            'sexo' => $sexo,
-            'urlImage' => $urlImage,
-            "updated_at" => now(),
-        ];
+        // Manejar actualización de contraseña si se proporciona
+        if (isset($data['password']) && !empty($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        } else {
+            unset($data['password']);
+        }
 
-        $cliente->update($data);
+        $cliente->fill($data);
+        $cliente->save();
         return response()->json([
             'message' => 'Datos del cliente actualizados correctamente',
-            'data' => $cliente
+            'data' => $cliente->toArray()
         ], 200); // 200 ok
     }
     

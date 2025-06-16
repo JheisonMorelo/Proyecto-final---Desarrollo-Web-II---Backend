@@ -25,6 +25,8 @@ class Cita extends Model
         'fechaCita' => 'datetime',
     ];
 
+    public $timestamps = false;
+
     /**
      * Relación con el modelo Cliente.
      * Un Cita pertenece a un Cliente.

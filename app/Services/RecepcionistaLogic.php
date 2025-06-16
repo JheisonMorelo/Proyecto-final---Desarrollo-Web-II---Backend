@@ -6,6 +6,8 @@ use App\Models\Recepcionista;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class RecepcionistaLogic
 {
@@ -44,12 +46,11 @@ class RecepcionistaLogic
             "updated_at" => null,
         ]);
 
-        $token = $recepcionista->createToken('recepcionista-auth-token')->plainTextToken;
+        $recepcionista->assignRole('recepcionista');
 
         return response()->json([
             'message' => 'Registro de recepcionista exitoso',
             'user' => $recepcionista,
-            'token' => $token,
         ], 201);
     }
 
@@ -62,17 +63,6 @@ class RecepcionistaLogic
      */
     public function login(string $email, string $password)
     {
-        try {
-            Request::validate([
-                'email' => 'required|string|email',
-                'password' => 'required|string'
-            ]);
-        } catch (ValidationException $e) {
-            return response()->json([
-                'message' => 'Error de validación',
-                'errors' => $e->errors()
-            ], 422);
-        }
 
         $recepcionista = Recepcionista::where('email', $email)->first();
 
@@ -86,10 +76,15 @@ class RecepcionistaLogic
 
         $token = $recepcionista->createToken('recepcionista-auth-token')->plainTextToken;
 
+        $roleName = $recepcionista->getRoleNames()->first(); // Obtiene el nombre del primer rol
+        $permissions = $recepcionista->getAllPermissions()->pluck('name'); // Obtiene todos los permisos por nombre
+
         return response()->json([
             'message' => 'Inicio de sesión de recepcionista exitoso',
             'user' => $recepcionista,
             'token' => $token,
+            'role' => $roleName,
+            'permissions' => $permissions
         ], 200);
     }
 
@@ -113,9 +108,13 @@ class RecepcionistaLogic
      */
     public function getAutenticado(Recepcionista $recepcionista)
     {
+        $roleName = $recepcionista->getRoleNames()->first(); // Obtiene el nombre del primer rol
+        $permissions = $recepcionista->getAllPermissions()->pluck('name'); // Obtiene todos los permisos por nombre
         return response()->json([
             'message' => 'Datos del recepcionista',
-            'data' => $recepcionista
+            'data' => $recepcionista,
+            'role' => $roleName,
+            'permissions' => $permissions
         ], 200);
     }
 
@@ -145,17 +144,26 @@ class RecepcionistaLogic
      * @param array $data
      * @return \Illuminate\Http\JsonResponse
      */
-    public function update(string $cedula, array $data)
+    public static function update(string $cedula, array $data)
     {
-        $recepcionista = Recepcionista::where('cedula', $cedula)->first();
+        $recepcionista = Recepcionista::find($cedula);
         if (!$recepcionista) {
             return response()->json(['message' => 'Recepcionista no encontrado'], 404);
         }
-        // urlImage puede venir en $data
-        $recepcionista->update($data);
+
+        // Manejar actualización de contraseña si se proporciona
+        if (isset($data['password']) && !empty($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        } else {
+            unset($data['password']); // No actualizar la contraseña si está vacía
+        }
+
+        $recepcionista->fill($data); // Usar fill para actualizar múltiples atributos
+        $recepcionista->save();
+
         return response()->json([
-            'message' => 'Datos del recepcionista actualizados correctamente',
-            'data' => $recepcionista
+            'message' => 'Recepcionista actualizado correctamente',
+            'data' => $recepcionista->toArray()
         ], 200);
     }
 
@@ -169,7 +177,7 @@ class RecepcionistaLogic
         $recepcionistas = Recepcionista::all();
         return response()->json([
             'message' => 'Lista de recepcionistas',
-            'data' => $recepcionistas
+            'data' => $recepcionistas->toArray()
         ], 200);
     }
 

@@ -6,6 +6,8 @@ use App\Models\Especialista;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\Request;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
 
 class EspecialistaLogic
 {
@@ -46,12 +48,11 @@ class EspecialistaLogic
             "updated_at" => null,
         ]);
 
-        $token = $especialista->createToken('especialista-auth-token')->plainTextToken;
+        $especialista->assignRole('especialista');
 
         return response()->json([
             'message' => 'Registro de especialista exitoso',
             'user' => $especialista,
-            'token' => $token,
         ], 201);
     }
 
@@ -76,11 +77,16 @@ class EspecialistaLogic
         $especialista->tokens()->where('name', 'especialista-auth-token')->delete();
 
         $token = $especialista->createToken('especialista-auth-token')->plainTextToken;
+        $roleName = $especialista->getRoleNames()->first(); // Obtiene el nombre del primer rol
+        $permissions = $especialista->getAllPermissions()->pluck('name'); // Obtiene todos los permisos por nombre
+
 
         return response()->json([
             'message' => 'Inicio de sesión de especialista exitoso',
             'user' => $especialista,
             'token' => $token,
+            'role' => $roleName,
+            'permissions' => $permissions
         ], 200);
     }
 
@@ -104,9 +110,13 @@ class EspecialistaLogic
      */
     public function getAuth(Especialista $especialista)
     {
+        $roleName = $especialista->getRoleNames()->first(); // Obtiene el nombre del primer rol
+        $permissions = $especialista->getAllPermissions()->pluck('name'); // Obtiene todos los permisos por nombre
         return response()->json([
             'message' => 'Datos del especialista',
-            'data' => $especialista
+            'data' => $especialista,
+            'role' => $roleName,
+            'permissions' => $permissions
         ], 200);
     }
 

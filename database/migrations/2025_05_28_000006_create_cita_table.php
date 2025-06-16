@@ -14,13 +14,13 @@ return new class extends Migration
         Schema::create('cita', function (Blueprint $table) {
             $table->string('codigo')->primary();
             $table->string('idCliente');
-            $table->string('idRecepcionista');
+            $table->string('idRecepcionista')->nullable();
             $table->dateTime('fechaCita');
             $table->string('estado');
             $table->double('costoTotal');
 
-            $table->foreign('idCliente')->references('cedula')->on('cliente');
-            $table->foreign('idRecepcionista')->references('cedula')->on('recepcionista');
+            $table->foreign('idCliente')->references('cedula')->on('cliente')->onDelete('cascade');
+            $table->foreign('idRecepcionista')->references('cedula')->on('recepcionista')->onDelete('cascade');
         });
 
         Schema::create('servicio', function (Blueprint $table) {
@@ -29,6 +29,7 @@ return new class extends Migration
             $table->longText('descripcion');
             $table->double('precio');
             $table->string('urlImage')->nullable();
+            $table->timestamps();
         });
 
         Schema::create('contieneCita', function (Blueprint $table) {
@@ -36,8 +37,8 @@ return new class extends Migration
             $table->string('codigoServicio');
 
 
-            $table->foreign('codigoCita')->references('codigo')->on('cita');
-            $table->foreign('codigoServicio')->references('codigo')->on('servicio');
+            $table->foreign('codigoCita')->references('codigo')->on('cita')->onDelete('cascade');
+            $table->foreign('codigoServicio')->references('codigo')->on('servicio')->onDelete('cascade');
 
             $table->primary(['codigoCita', 'codigoServicio']);
         });

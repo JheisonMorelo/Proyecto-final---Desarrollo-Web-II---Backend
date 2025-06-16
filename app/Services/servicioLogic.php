@@ -14,10 +14,11 @@ class ServicioLogic
         $servicios = Servicio::all();
         return response()->json([
             'message' => 'Lista de servicios',
-            'data' => $servicios
+            'data' => $servicios->toArray() // <-- CAMBIO: Convertir a array
         ], 200);
     }
 
+    // ... resto de los métodos
     /**
      * Obtener un servicio por su código.
      */
@@ -29,7 +30,7 @@ class ServicioLogic
         }
         return response()->json([
             'message' => 'Servicio encontrado',
-            'data' => $servicio
+            'data' => $servicio->toArray() // <-- CAMBIO: Convertir a array
         ], 200);
     }
 
@@ -48,7 +49,7 @@ class ServicioLogic
 
         return response()->json([
             'message' => 'Servicio creado exitosamente',
-            'data' => $servicio
+            'data' => $servicio->toArray() // <-- CAMBIO: Convertir a array
         ], 201);
     }
 
@@ -71,7 +72,7 @@ class ServicioLogic
 
         return response()->json([
             'message' => 'Servicio actualizado correctamente',
-            'data' => $servicio
+            'data' => $servicio->toArray() // <-- CAMBIO: Convertir a array
         ], 200);
     }
 

@@ -14,7 +14,7 @@ class ProductoLogic
         $productos = Producto::all();
         return response()->json([
             'message' => 'Lista de productos',
-            'data' => $productos
+            'data' => $productos->toArray()
         ], 200);
     }
 

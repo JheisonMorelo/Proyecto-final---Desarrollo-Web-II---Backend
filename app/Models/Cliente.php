@@ -19,7 +19,7 @@ class Cliente extends Authenticatable
     protected $primaryKey = 'cedula';
 
     protected $fillable = [
-        'cedula', 'nombre', 'email', 'password', 'edad', 'sexo', 'fecha_nacimiento', 'urlImage'
+        'cedula', 'nombre', 'email', 'password', 'edad', 'sexo', 'urlImage'
     ];
 
     protected $hidden = [

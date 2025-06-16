@@ -25,9 +25,9 @@ class AsistenteVentasController extends Controller
         try {
             // Validación de los datos de entrada, incluyendo la imagen como requerida
             $request->validate([
-                'cedula' => 'required|string|max:20|unique:asistente_ventas,cedula',
+                'cedula' => 'required|string|max:20|unique:asistenteventas,cedula',
                 'nombre' => 'required|string|max:100',
-                'email' => 'required|email|max:255|unique:asistente_ventas,email',
+                'email' => 'required|email|max:255|unique:asistenteventas,email',
                 'password' => 'required|string|min:8|confirmed',
                 'edad' => 'required|integer|min:18|max:100',
                 'sexo' => 'required|string|in:M,F',
