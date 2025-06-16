@@ -31,7 +31,7 @@ class ServicioController extends Controller
     {
         try {
             $request->validate([
-                'codigo' => 'required|string|max:20|unique:servicio',
+                'codigo' => 'required|string|unique:servicio',
                 'nombre' => 'required|string|max:255',
                 'descripcion' => 'nullable|string|max:500',
                 'precio' => 'required|numeric|min:0',
@@ -70,7 +70,7 @@ class ServicioController extends Controller
     {
         try {
             $request->validate([
-                'codigo' => 'required|string|max:20|exists:servicio,codigo',
+                'codigo' => 'required|string|exists:servicio,codigo',
                 'nombre' => 'required|string|max:255',
                 'descripcion' => 'nullable|string|max:500',
                 'precio' => 'required|numeric|min:0',

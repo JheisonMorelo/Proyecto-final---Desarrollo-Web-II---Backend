@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Crud_basic\Users;
 use App\Http\Controllers\Controller;
 use App\Services\RecepcionistaLogic; // Asegúrate que sea App\Services\RecepcionistaLogic
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\File; // Importa la fachada File
 

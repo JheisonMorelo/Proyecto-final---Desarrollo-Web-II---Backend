@@ -159,7 +159,7 @@ use App\Http\Controllers\Crud_basic\Elements\ServicioController;
 
 Route::middleware(['auth:recepcionista_api'])->group(function () {
     Route::post('/servicio/create', [ServicioController::class, 'create']);
-    Route::put('/servicio/update', [ServicioController::class, 'update']);
+    Route::post('/servicio/update', [ServicioController::class, 'update']);
     Route::delete('/servicio/delete', [ServicioController::class, 'destroy']);
 });
 
